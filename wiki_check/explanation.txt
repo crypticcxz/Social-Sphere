@@ -1,0 +1,65 @@
+Scope and behavior of wiki_check/wiki.py
+
+Overview
+- This script discovers academic leads from Google Scholar, enriches them with contact info and Wikipedia presence, and writes them to two CSVs for further outreach or analysis.
+- It is designed for bulk operation with pagination, de-duplication, Unicode cleanup, and resilient matching for names and Wikipedia pages.
+
+Key Capabilities
+1) Discovery (Google Scholar via Custom Search API)
+   - Uses a Scholar-focused CSE (GOOGLE_SCHOLAR_CSE_ID) and a tuned query encouraging snippets to include “Cited by” and “h-index”.
+   - Paginates across multiple pages (up to 100 results by default) to gather bulk results, not just the first page.
+
+2) Qualification
+   - Extracts citations and h-index from snippets using robust regex patterns.
+   - If h-index is missing but the profile URL is a Google Scholar profile, optionally fetches the profile page and attempts to parse h-index.
+   - Applies thresholds (default: citations ≥ 10000 and h-index ≥ 40; h-index optional if REQUIRE_H_INDEX=false) to determine qualified leads.
+
+3) Enrichment
+   - Name normalization and Unicode cleanup to handle invisible directionality markers and formatting inconsistencies.
+   - Wikipedia search via general CSE (GOOGLE_GENERAL_CSE_ID) using multiple queries and intelligent name-matching (handles middle initials, common nicknames, academic context cues).
+   - Email discovery via expanded search strategies across many domains (e.g., .edu, .ac.uk) and platforms (e.g., ResearchGate), with light rate-limiting between queries.
+
+4) Output (CSV Files)
+   - Writes qualified leads to two separate CSVs in this directory:
+     • qualified_scholar_profiles_with_wikipedia.csv
+     • qualified_scholar_profiles_without_wikipedia.csv
+   - Each row includes: name, citations, h_index, email, profile_url, wikipedia_url.
+   - Always appends new, non-duplicate rows (deduped by normalized name).
+   - Creates files with headers if they do not exist.
+
+Configuration (.env)
+- GOOGLE_API_KEY                 (required) Google API key for Custom Search API.
+- GOOGLE_SCHOLAR_CSE_ID         (required) CSE configured to search scholar.google.com.
+- GOOGLE_GENERAL_CSE_ID         (optional but recommended) CSE for general web/email/Wikipedia searches.
+- MIN_CITATIONS_THRESHOLD       (default: 10000)
+- MIN_H_INDEX_THRESHOLD         (default: 40)
+- REQUIRE_H_INDEX               (default: false) If true, h-index must meet threshold; if false, citations-alone may qualify.
+
+How It Works (High-Level Flow)
+1) Build search term → run paginated searches on Scholar CSE → collect items.
+2) For each item: clean title/snippet, extract metrics, optionally fetch h-index from profile page.
+3) If qualified: normalize name; search for email (general CSE) and Wikipedia URL (general CSE) using resilient matching.
+4) Write to CSVs, deduplicating by name and preserving prior runs.
+
+Assumptions & Limitations
+- Requires valid Google Custom Search Engine configuration(s); free quotas are limited (100 queries/day). The script makes multiple queries per person for email/Wikipedia.
+- Some universities (especially non-English or privacy-conscious sites) do not expose emails; results may still be “Not found”.
+- Wikipedia name variations (e.g., middle initials) and disambiguation pages are handled heuristically; false negatives are possible.
+- Scholar HTML patterns may change; best-effort scraping is used when snippet data is incomplete.
+
+Performance Notes
+- Pagination (up to 10 pages) and expanded email/Wikipedia searches increase runtime and API usage.
+- Light delays are added between email queries to reduce rate limiting.
+
+Running
+- Ensure .env is set appropriately.
+- From repo root or this directory, run:  python wiki.py
+- Outputs appear in this directory as CSV files, appended incrementally without overwriting existing data.
+
+Data Hygiene
+- Unicode control characters (e.g., U+202A, U+202C) are stripped from names, links, and text fields.
+- Final cleanup is applied just before CSV write to ensure clean outputs.
+
+Extensibility
+- Adjust search term, thresholds, and max_pages as needed for different scopes or institutions.
+- Expand email/Wikipedia search domains, add institutional directories, or integrate additional data sources.
