@@ -1,0 +1,247 @@
+Oxford professor "cited by" "h-index" || oxford,ox.ac.uk,oxford.ac.uk
+Cambridge professor "cited by" "h-index" || cambridge,cam.ac.uk,cambridge.ac.uk
+Imperial College professor "cited by" "h-index" || imperial,imperial.ac.uk
+UCL professor "cited by" "h-index" || ucl,ucl.ac.uk
+ETH Zurich professor "cited by" "h-index" || ethz,ethz.ch,eth.ch
+EPFL professor "cited by" "h-index" || epfl,epfl.ch
+University of Toronto professor "cited by" "h-index" || utoronto,utoronto.ca,toronto.edu
+McGill professor "cited by" "h-index" || mcgill,mcgill.ca
+University of Tokyo professor "cited by" "h-index" || u-tokyo,u-tokyo.ac.jp,tokyo.ac.jp
+Kyoto University professor "cited by" "h-index" || kyoto-u,kyoto-u.ac.jp,kyoto.ac.jp
+Tsinghua professor "cited by" "h-index" || tsinghua,tsinghua.edu.cn
+Peking University professor "cited by" "h-index" || pku,pku.edu.cn,peking.edu.cn
+NUS professor "cited by" "h-index" || nus,nus.edu.sg
+NTU professor "cited by" "h-index" || ntu,ntu.edu.sg
+University of Melbourne professor "cited by" "h-index" || unimelb,unimelb.edu.au,melbourne.edu.au
+University of Sydney professor "cited by" "h-index" || sydney,sydney.edu.au
+ANU professor "cited by" "h-index" || anu,anu.edu.au
+University of Amsterdam professor "cited by" "h-index" || uva,uva.nl,amsterdam.edu
+TU Delft professor "cited by" "h-index" || tudelft,tudelft.nl,delft.edu
+Karolinska Institute professor "cited by" "h-index" || ki,ki.se,karolinska.se
+KTH professor "cited by" "h-index" || kth,kth.se
+University of Copenhagen professor "cited by" "h-index" || ku,ku.dk,copenhagen.edu
+Technical University of Denmark professor "cited by" "h-index" || dtu,dtu.dk
+LMU Munich professor "cited by" "h-index" || lmu,lmu.de,munich.edu
+TU Munich professor "cited by" "h-index" || tum,tum.de,tu-munich.de
+Heidelberg University professor "cited by" "h-index" || uni-heidelberg,uni-heidelberg.de,heidelberg.edu
+Sorbonne professor "cited by" "h-index" || sorbonne,sorbonne-universite.fr,sorbonne.fr
+École Polytechnique professor "cited by" "h-index" || polytechnique,polytechnique.edu
+ENS Paris professor "cited by" "h-index" || ens,ens.fr,paris.edu
+University of Edinburgh professor "cited by" "h-index" || edinburgh,ed.ac.uk,edinburgh.ac.uk
+King's College London professor "cited by" "h-index" || kcl,kcl.ac.uk,kings.ac.uk
+LSE professor "cited by" "h-index" || lse,lse.ac.uk
+University of Manchester professor "cited by" "h-index" || manchester,manchester.ac.uk
+University of Warwick professor "cited by" "h-index" || warwick,warwick.ac.uk
+University of Bristol professor "cited by" "h-index" || bristol,bristol.ac.uk
+University of Glasgow professor "cited by" "h-index" || glasgow,glasgow.ac.uk
+University of Birmingham professor "cited by" "h-index" || birmingham,birmingham.ac.uk
+University of Leeds professor "cited by" "h-index" || leeds,leeds.ac.uk
+University of Sheffield professor "cited by" "h-index" || sheffield,sheffield.ac.uk
+University of Nottingham professor "cited by" "h-index" || nottingham,nottingham.ac.uk
+University of Liverpool professor "cited by" "h-index" || liverpool,liverpool.ac.uk
+University of Southampton professor "cited by" "h-index" || southampton,southampton.ac.uk
+University of Newcastle professor "cited by" "h-index" || newcastle,newcastle.ac.uk
+University of York professor "cited by" "h-index" || york,york.ac.uk
+University of Exeter professor "cited by" "h-index" || exeter,exeter.ac.uk
+University of Bath professor "cited by" "h-index" || bath,bath.ac.uk
+University of Durham professor "cited by" "h-index" || durham,durham.ac.uk
+University of St Andrews professor "cited by" "h-index" || st-andrews,st-andrews.ac.uk
+University of Aberdeen professor "cited by" "h-index" || aberdeen,aberdeen.ac.uk
+University of Dundee professor "cited by" "h-index" || dundee,dundee.ac.uk
+University of Strathclyde professor "cited by" "h-index" || strathclyde,strath.ac.uk
+University of Heriot-Watt professor "cited by" "h-index" || hw,hw.ac.uk,heriot-watt.ac.uk
+University of Stirling professor "cited by" "h-index" || stirling,stir.ac.uk
+University of Lancaster professor "cited by" "h-index" || lancaster,lancaster.ac.uk
+University of Loughborough professor "cited by" "h-index" || lboro,lboro.ac.uk,loughborough.ac.uk
+University of Reading professor "cited by" "h-index" || reading,reading.ac.uk
+University of Surrey professor "cited by" "h-index" || surrey,surrey.ac.uk
+University of Sussex professor "cited by" "h-index" || sussex,sussex.ac.uk
+University of Kent professor "cited by" "h-index" || kent,kent.ac.uk
+University of Essex professor "cited by" "h-index" || essex,essex.ac.uk
+University of East Anglia professor "cited by" "h-index" || uea,uea.ac.uk,east-anglia.ac.uk
+University of Leicester professor "cited by" "h-index" || leicester,leicester.ac.uk
+University of Hull professor "cited by" "h-index" || hull,hull.ac.uk
+University of Bradford professor "cited by" "h-index" || bradford,bradford.ac.uk
+University of Huddersfield professor "cited by" "h-index" || hud,hud.ac.uk,huddersfield.ac.uk
+University of Salford professor "cited by" "h-index" || salford,salford.ac.uk
+University of Manchester Metropolitan professor "cited by" "h-index" || mmu,mmu.ac.uk,manchester-metropolitan.ac.uk
+University of Central Lancashire professor "cited by" "h-index" || uclan,uclan.ac.uk,central-lancashire.ac.uk
+University of Bolton professor "cited by" "h-index" || bolton,bolton.ac.uk
+University of Chester professor "cited by" "h-index" || chester,chester.ac.uk
+University of Liverpool John Moores professor "cited by" "h-index" || ljmu,ljmu.ac.uk,liverpool-john-moores.ac.uk
+University of Edge Hill professor "cited by" "h-index" || edgehill,edgehill.ac.uk
+University of Cumbria professor "cited by" "h-index" || cumbria,cumbria.ac.uk
+Harvard University professor "cited by" "h-index" || harvard,harvard.edu,hms.harvard.edu,seas.harvard.edu,fas.harvard.edu,gsas.harvard.edu,law.harvard.edu,med.harvard.edu
+Stanford University professor "cited by" "h-index" || stanford,stanford.edu
+MIT professor "cited by" "h-index" || mit,mit.edu
+Princeton University professor "cited by" "h-index" || princeton,princeton.edu
+Yale University professor "cited by" "h-index" || yale,yale.edu
+University of Chicago professor "cited by" "h-index" || uchicago,uchicago.edu
+Columbia University professor "cited by" "h-index" || columbia,columbia.edu
+University of Pennsylvania professor "cited by" "h-index" || upenn,upenn.edu,penn.edu
+Cornell University professor "cited by" "h-index" || cornell,cornell.edu
+Duke University professor "cited by" "h-index" || duke,duke.edu
+Northwestern University professor "cited by" "h-index" || northwestern,northwestern.edu
+Johns Hopkins University professor "cited by" "h-index" || jhu,jhu.edu,johnshopkins.edu
+University of Michigan professor "cited by" "h-index" || umich,umich.edu,michigan.edu
+UC San Diego professor "cited by" "h-index" || ucsd,ucsd.edu
+UC San Francisco professor "cited by" "h-index" || ucsf,ucsf.edu
+UC Irvine professor "cited by" "h-index" || uci,uci.edu
+UC Davis professor "cited by" "h-index" || ucdavis,ucdavis.edu
+UC Santa Barbara professor "cited by" "h-index" || ucsb,ucsb.edu
+UC Santa Cruz professor "cited by" "h-index" || ucsc,ucsc.edu
+UC Riverside professor "cited by" "h-index" || ucr,ucr.edu
+UC Merced professor "cited by" "h-index" || ucmerced,ucmerced.edu
+University of Washington professor "cited by" "h-index" || washington,washington.edu,uw.edu
+University of Texas Austin professor "cited by" "h-index" || utexas,utexas.edu,utexas.edu
+University of Wisconsin Madison professor "cited by" "h-index" || wisc,wisc.edu,wisconsin.edu
+University of Illinois Urbana-Champaign professor "cited by" "h-index" || illinois,illinois.edu,uiuc.edu
+University of Minnesota professor "cited by" "h-index" || umn,umn.edu,minnesota.edu
+University of North Carolina Chapel Hill professor "cited by" "h-index" || unc,unc.edu,chapelhill.edu
+Georgia Institute of Technology professor "cited by" "h-index" || gatech,gatech.edu,georgiatech.edu
+Carnegie Mellon University professor "cited by" "h-index" || cmu,cmu.edu,carnegiemellon.edu
+New York University professor "cited by" "h-index" || nyu,nyu.edu
+University of Virginia professor "cited by" "h-index" || virginia,virginia.edu,uva.edu
+University of Maryland professor "cited by" "h-index" || umd,umd.edu,maryland.edu
+University of Florida professor "cited by" "h-index" || ufl,ufl.edu,florida.edu
+University of Southern California professor "cited by" "h-index" || usc,usc.edu
+Rice University professor "cited by" "h-index" || rice,rice.edu
+Vanderbilt University professor "cited by" "h-index" || vanderbilt,vanderbilt.edu
+Emory University professor "cited by" "h-index" || emory,emory.edu
+University of Notre Dame professor "cited by" "h-index" || nd,nd.edu,notredame.edu
+Washington University in St Louis professor "cited by" "h-index" || wustl,wustl.edu,washington.edu
+University of Rochester professor "cited by" "h-index" || rochester,rochester.edu
+Case Western Reserve University professor "cited by" "h-index" || case,case.edu,cwru.edu
+Boston University professor "cited by" "h-index" || bu,bu.edu,boston.edu
+Northeastern University professor "cited by" "h-index" || northeastern,northeastern.edu
+Tufts University professor "cited by" "h-index" || tufts,tufts.edu
+Brandeis University professor "cited by" "h-index" || brandeis,brandeis.edu
+Boston College professor "cited by" "h-index" || bc,bc.edu,bostoncollege.edu
+University of Massachusetts professor "cited by" "h-index" || umass,umass.edu,massachusetts.edu
+University of Connecticut professor "cited by" "h-index" || uconn,uconn.edu,connecticut.edu
+Brown University professor "cited by" "h-index" || brown,brown.edu
+Dartmouth College professor "cited by" "h-index" || dartmouth,dartmouth.edu
+University of Vermont professor "cited by" "h-index" || uvm,uvm.edu,vermont.edu
+University of New Hampshire professor "cited by" "h-index" || unh,unh.edu,newhampshire.edu
+University of Maine professor "cited by" "h-index" || umaine,umaine.edu,maine.edu
+University of Rhode Island professor "cited by" "h-index" || uri,uri.edu,rhodeisland.edu
+Rutgers University professor "cited by" "h-index" || rutgers,rutgers.edu
+University of Delaware professor "cited by" "h-index" || udel,udel.edu,delaware.edu
+University of Pittsburgh professor "cited by" "h-index" || pitt,pitt.edu,pittsburgh.edu
+Penn State University professor "cited by" "h-index" || psu,psu.edu,pennstate.edu
+Temple University professor "cited by" "h-index" || temple,temple.edu
+Drexel University professor "cited by" "h-index" || drexel,drexel.edu
+Lehigh University professor "cited by" "h-index" || lehigh,lehigh.edu
+Villanova University professor "cited by" "h-index" || villanova,villanova.edu
+Swarthmore College professor "cited by" "h-index" || swarthmore,swarthmore.edu
+Haverford College professor "cited by" "h-index" || haverford,haverford.edu
+Bryn Mawr College professor "cited by" "h-index" || brynmawr,brynmawr.edu
+Virginia Tech professor "cited by" "h-index" || vt,vt.edu,virginiatech.edu
+George Mason University professor "cited by" "h-index" || gmu,gmu.edu,georgemason.edu
+Virginia Commonwealth University professor "cited by" "h-index" || vcu,vcu.edu
+Old Dominion University professor "cited by" "h-index" || odu,odu.edu
+University of Richmond professor "cited by" "h-index" || richmond,richmond.edu
+William and Mary professor "cited by" "h-index" || wm,wm.edu,williamandmary.edu
+Wake Forest University professor "cited by" "h-index" || wfu,wfu.edu,wakeforest.edu
+North Carolina State University professor "cited by" "h-index" || ncsu,ncsu.edu,ncstate.edu
+University of North Carolina Charlotte professor "cited by" "h-index" || uncc,uncc.edu,charlotte.edu
+University of North Carolina Greensboro professor "cited by" "h-index" || uncg,uncg.edu,greensboro.edu
+East Carolina University professor "cited by" "h-index" || ecu,ecu.edu,eastcarolina.edu
+Appalachian State University professor "cited by" "h-index" || appstate,appstate.edu,appalachian.edu
+University of South Carolina professor "cited by" "h-index" || sc,sc.edu,southcarolina.edu
+Clemson University professor "cited by" "h-index" || clemson,clemson.edu
+Furman University professor "cited by" "h-index" || furman,furman.edu
+University of Georgia professor "cited by" "h-index" || uga,uga.edu,georgia.edu
+Georgia State University professor "cited by" "h-index" || gsu,gsu.edu,georgiastate.edu
+Kennesaw State University professor "cited by" "h-index" || ksu,ksu.edu,kennesaw.edu
+Florida State University professor "cited by" "h-index" || fsu,fsu.edu,floridastate.edu
+University of Miami professor "cited by" "h-index" || miami,miami.edu
+Florida Institute of Technology professor "cited by" "h-index" || fit,fit.edu,floridatech.edu
+University of Central Florida professor "cited by" "h-index" || ucf,ucf.edu,centralflorida.edu
+Florida Atlantic University professor "cited by" "h-index" || fau,fau.edu,floridaatlantic.edu
+University of South Florida professor "cited by" "h-index" || usf,usf.edu,southflorida.edu
+Florida International University professor "cited by" "h-index" || fiu,fiu.edu,floridainternational.edu
+University of Alabama professor "cited by" "h-index" || ua,ua.edu,alabama.edu
+Auburn University professor "cited by" "h-index" || auburn,auburn.edu
+University of Alabama Birmingham professor "cited by" "h-index" || uab,uab.edu,birmingham.edu
+University of Alabama Huntsville professor "cited by" "h-index" || uah,uah.edu,huntsville.edu
+University of Mississippi professor "cited by" "h-index" || olemiss,olemiss.edu,mississippi.edu
+Mississippi State University professor "cited by" "h-index" || msstate,msstate.edu,mississippistate.edu
+University of Southern Mississippi professor "cited by" "h-index" || usm,usm.edu,southernmiss.edu
+University of Tennessee professor "cited by" "h-index" || utk,utk.edu,tennessee.edu
+University of Memphis professor "cited by" "h-index" || memphis,memphis.edu
+Tennessee State University professor "cited by" "h-index" || tnstate,tnstate.edu,tennesseestate.edu
+University of Kentucky professor "cited by" "h-index" || uk,uky.edu,kentucky.edu
+University of Louisville professor "cited by" "h-index" || louisville,louisville.edu
+Western Kentucky University professor "cited by" "h-index" || wku,wku.edu,westernkentucky.edu
+Eastern Kentucky University professor "cited by" "h-index" || eku,eku.edu,easternkentucky.edu
+Northern Kentucky University professor "cited by" "h-index" || nku,nku.edu,northernkentucky.edu
+University of Arkansas professor "cited by" "h-index" || uark,uark.edu,arkansas.edu
+Arkansas State University professor "cited by" "h-index" || astate,astate.edu,arkansasstate.edu
+University of Central Arkansas professor "cited by" "h-index" || uca,uca.edu,centralarkansas.edu
+University of Oklahoma professor "cited by" "h-index" || ou,ou.edu,oklahoma.edu
+Oklahoma State University professor "cited by" "h-index" || okstate,okstate.edu,oklahomastate.edu
+University of Tulsa professor "cited by" "h-index" || utulsa,utulsa.edu,tulsa.edu
+Oklahoma City University professor "cited by" "h-index" || okcu,okcu.edu,oklahomacity.edu
+University of Kansas professor "cited by" "h-index" || ku,ku.edu,kansas.edu
+Kansas State University professor "cited by" "h-index" || k-state,k-state.edu,kansasstate.edu
+Wichita State University professor "cited by" "h-index" || wichita,wichita.edu,wichitastate.edu
+University of Missouri professor "cited by" "h-index" || missouri,missouri.edu,mizzou.edu
+Saint Louis University professor "cited by" "h-index" || slu,slu.edu,saintlouis.edu
+Missouri University of Science and Technology professor "cited by" "h-index" || mst,mst.edu,missouri.edu
+University of Missouri Kansas City professor "cited by" "h-index" || umkc,umkc.edu,kansascity.edu
+University of Missouri St Louis professor "cited by" "h-index" || umsl,umsl.edu,stlouis.edu
+University of Iowa professor "cited by" "h-index" || uiowa,uiowa.edu,iowa.edu
+Iowa State University professor "cited by" "h-index" || iastate,iastate.edu,iowastate.edu
+Drake University professor "cited by" "h-index" || drake,drake.edu
+Grinnell College professor "cited by" "h-index" || grinnell,grinnell.edu
+University of Nebraska professor "cited by" "h-index" || unl,unl.edu,nebraska.edu
+Creighton University professor "cited by" "h-index" || creighton,creighton.edu
+University of Nebraska Omaha professor "cited by" "h-index" || uno,uno.edu,omaha.edu
+University of Nebraska Kearney professor "cited by" "h-index" || unk,unk.edu,kearney.edu
+University of South Dakota professor "cited by" "h-index" || usd,usd.edu,southdakota.edu
+South Dakota State University professor "cited by" "h-index" || sdstate,sdstate.edu,southdakotastate.edu
+University of North Dakota professor "cited by" "h-index" || und,und.edu,northdakota.edu
+North Dakota State University professor "cited by" "h-index" || ndsu,ndsu.edu,northdakotastate.edu
+University of Montana professor "cited by" "h-index" || umt,umt.edu,montana.edu
+Montana State University professor "cited by" "h-index" || montana,montana.edu,montanastate.edu
+University of Wyoming professor "cited by" "h-index" || uwyo,uwyo.edu,wyoming.edu
+University of Colorado professor "cited by" "h-index" || colorado,colorado.edu,cu.edu
+Colorado State University professor "cited by" "h-index" || colostate,colostate.edu,coloradostate.edu
+University of Denver professor "cited by" "h-index" || du,du.edu,denver.edu
+Colorado School of Mines professor "cited by" "h-index" || mines,mines.edu,coloradoschoolofmines.edu
+University of Northern Colorado professor "cited by" "h-index" || unco,unco.edu,northerncolorado.edu
+University of New Mexico professor "cited by" "h-index" || unm,unm.edu,newmexico.edu
+New Mexico State University professor "cited by" "h-index" || nmsu,nmsu.edu,newmexicostate.edu
+University of Arizona professor "cited by" "h-index" || arizona,arizona.edu
+Arizona State University professor "cited by" "h-index" || asu,asu.edu,arizonastate.edu
+Northern Arizona University professor "cited by" "h-index" || nau,nau.edu,northernarizona.edu
+University of Utah professor "cited by" "h-index" || utah,utah.edu
+Brigham Young University professor "cited by" "h-index" || byu,byu.edu,brighamyoung.edu
+Utah State University professor "cited by" "h-index" || usu,usu.edu,utahstate.edu
+Weber State University professor "cited by" "h-index" || weber,weber.edu,weberstate.edu
+University of Nevada professor "cited by" "h-index" || unr,unr.edu,nevada.edu
+University of Nevada Las Vegas professor "cited by" "h-index" || unlv,unlv.edu,lasvegas.edu
+University of Nevada Reno professor "cited by" "h-index" || unr,unr.edu,reno.edu
+University of Idaho professor "cited by" "h-index" || uidaho,uidaho.edu,idaho.edu
+Boise State University professor "cited by" "h-index" || boisestate,boisestate.edu
+Idaho State University professor "cited by" "h-index" || isu,isu.edu,idahostate.edu
+University of Oregon professor "cited by" "h-index" || uoregon,uoregon.edu,oregon.edu
+Oregon State University professor "cited by" "h-index" || oregonstate,oregonstate.edu
+Portland State University professor "cited by" "h-index" || pdx,pdx.edu,portlandstate.edu
+University of Portland professor "cited by" "h-index" || up,up.edu,portland.edu
+Reed College professor "cited by" "h-index" || reed,reed.edu
+Lewis and Clark College professor "cited by" "h-index" || lclark,lclark.edu,lewisandclark.edu
+Willamette University professor "cited by" "h-index" || willamette,willamette.edu
+Washington State University professor "cited by" "h-index" || wsu,wsu.edu,washingtonstate.edu
+Gonzaga University professor "cited by" "h-index" || gonzaga,gonzaga.edu
+Seattle University professor "cited by" "h-index" || seattleu,seattleu.edu,seattle.edu
+University of Puget Sound professor "cited by" "h-index" || pugetsound,pugetsound.edu
+Whitman College professor "cited by" "h-index" || whitman,whitman.edu
+University of Alaska professor "cited by" "h-index" || alaska,alaska.edu
+Alaska Pacific University professor "cited by" "h-index" || alaskapacific,alaskapacific.edu
+University of Alaska Anchorage professor "cited by" "h-index" || uaa,uaa.edu,anchorage.edu
+University of Alaska Fairbanks professor "cited by" "h-index" || uaf,uaf.edu,fairbanks.edu
+University of Hawaii professor "cited by" "h-index" || hawaii,hawaii.edu,uh.edu
+Hawaii Pacific University professor "cited by" "h-index" || hpu,hpu.edu,hawaiipacific.edu
+Chaminade University professor "cited by" "h-index" || chaminade,chaminade.edu

@@ -1,0 +1,39 @@
+# Environment Variables Template for Wikipedia Analyzer
+# Copy this to .env and fill in your actual values
+
+# REQUIRED: OpenAI API Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+
+# REQUIRED: Wikipedia/MediaWiki Configuration
+WIKI_MAILTO=your-email@example.com
+WIKI_DELAY_MS=200
+REQUEST_TIMEOUT=30
+
+# Optional: If you want to use the existing wiki.py functionality
+GOOGLE_API_KEY=your_google_api_key_here
+GOOGLE_SCHOLAR_CSE_ID=your_google_scholar_cse_id_here
+GOOGLE_GENERAL_CSE_ID=your_google_general_cse_id_here
+
+# Instructions:
+# 1. Copy this file to .env
+# 2. Replace the placeholder values with your actual API keys and email
+# 3. The WIKI_MAILTO should be your email address for Wikipedia API requests
+# 4. WIKI_DELAY_MS is the delay between requests (200ms recommended)
+# 5. REQUEST_TIMEOUT is the timeout for HTTP requests (30 seconds recommended)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

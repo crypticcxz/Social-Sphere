@@ -1,0 +1,32 @@
+{
+    "max_urls": 50,
+    "timeout": 15,
+    "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "follow_external_links": false,
+    "save_results": true,
+    "analysis_methods": ["pattern", "tfidf", "similarity"],
+    "email_patterns": {
+        "exclude_hashes": true,
+        "exclude_numbers_only": true,
+        "min_length": 3,
+        "exclude_no_letters": true
+    },
+    "scoring": {
+        "exact_first_name": 10,
+        "exact_last_name": 10,
+        "partial_first_name": 5,
+        "partial_last_name": 5,
+        "first_initial": 2,
+        "last_initial": 2,
+        "both_names_bonus": 5,
+        "full_name_bonus": 15,
+        "domain_bonus": 5
+    },
+    "logging": {
+        "level": "INFO",
+        "file": "email_scraper.log",
+        "max_size": "10MB",
+        "backup_count": 5
+    }
+}
+

@@ -6,6 +6,14 @@ import time
 from typing import Optional, Dict, List
 from googleapiclient.discovery import build
 from dotenv import load_dotenv
+try:
+    from openai import OpenAI
+except Exception:
+    OpenAI = None  # optional; we'll guard at runtime
+try:
+    from bs4 import BeautifulSoup
+except Exception:
+    BeautifulSoup = None
 
 # Import email scraper
 sys.path.append(os.path.join(os.path.dirname(__file__), 'Email Scrapper'))
@@ -33,8 +41,74 @@ WIKI_CACHE: Dict[str, str] = {}
 PROFILE_FETCH_MODE = os.getenv("PROFILE_FETCH_MODE", "auto").lower()
 DEBUG_FETCH = os.getenv("DEBUG_FETCH", "false").lower() == "true"
 
+# Optional affiliation/domain filter. Comma-separated list, e.g., "stanford,stanford.edu"
+AFFILIATION_FILTER = [t.strip().lower() for t in os.getenv("AFFILIATION_FILTER", "").split(",") if t.strip()]
+
+# Optional rotating query list file. Each line format:
+# search term || aff1,aff2,aff3
+QUERY_LIST_PATH = os.getenv("QUERY_LIST_PATH", os.path.join(os.path.dirname(__file__), "queries.txt"))
+
+def _load_next_query_from_file(path: str):
+    try:
+        if not os.path.exists(path) or os.stat(path).st_size == 0:
+            return None
+        with open(path, "r", encoding="utf-8") as f:
+            lines = [ln.rstrip("\n") for ln in f.readlines()]
+        # Skip empty/comment lines
+        while lines and (not lines[0].strip() or lines[0].lstrip().startswith("#")):
+            lines.pop(0)
+        if not lines:
+            return None
+        first = lines[0]
+        rest = lines[1:]
+        if "||" in first:
+            term_part, aff_part = first.split("||", 1)
+            term = term_part.strip()
+            aff_tokens = [t.strip().lower() for t in aff_part.split(",") if t.strip()]
+        else:
+            term = first.strip()
+            aff_tokens = []
+        return {"term": term, "aff": aff_tokens, "rest": rest}
+    except Exception:
+        return None
+
+def _consume_query_file(path: str, remaining_lines: list) -> None:
+    try:
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            for ln in remaining_lines:
+                f.write(ln + "\n")
+    except Exception:
+        pass
+
 # Global counter for Google CSE API calls
 CSE_CALL_COUNT = 0
+
+# Strict email validator
+EMAIL_REGEX = re.compile(r'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
+
+def is_valid_email(candidate: str) -> bool:
+    if not isinstance(candidate, str):
+        return False
+    s = candidate.strip()
+    if not EMAIL_REGEX.match(s):
+        return False
+    try:
+        local, domain = s.split('@', 1)
+    except ValueError:
+        return False
+    # Disallow path-like or asset-like strings
+    if '/' in local or '/' in domain:
+        return False
+    # Disallow common file-extension TLDs
+    bad_tlds = {"png", "jpg", "jpeg", "gif", "svg", "webp", "bmp", "tiff", "ico", "css", "js", "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx"}
+    tld = domain.rsplit('.', 1)[-1].lower() if '.' in domain else ''
+    if tld in bad_tlds:
+        return False
+    # Require at least one alphabetic in the second-level domain
+    second_level = domain.rsplit('.', 1)[0] if '.' in domain else domain
+    if not re.search(r'[A-Za-z]', second_level):
+        return False
+    return True
 
 def _count_cse_call(label: str) -> None:
     """Increment and print the Google CSE call counter."""
@@ -224,7 +298,7 @@ def fetch_h_index_from_profile(profile_url: str) -> Optional[int]:
 def fetch_profile_metrics(profile_url: str) -> Dict[str, Optional[int]]:
     """Fetch both total citations and h-index from a Google Scholar profile page.
     Returns a dict {"citations": int|None, "h_index": int|None}."""
-    result: Dict[str, Optional[int]] = {"citations": None, "h_index": None}
+    result: Dict[str, Optional[int]] = {"citations": None, "h_index": None, "affiliation_text": None}
     try:
         import requests
         headers = {
@@ -286,6 +360,15 @@ def fetch_profile_metrics(profile_url: str) -> Dict[str, Optional[int]]:
                     result["h_index"] = int(m_h.group(1))
                 except Exception:
                     pass
+            # Affiliation (profile subtitle area)
+            try:
+                m_aff = re.search(r'<div[^>]*class="gsc_prf_il"[^>]*>([\s\S]*?)</div>', html, flags=re.IGNORECASE)
+                if m_aff:
+                    aff_txt = re.sub(r'<[^>]+>', ' ', m_aff.group(1))
+                    aff_txt = re.sub(r'\s+', ' ', aff_txt).strip()
+                    result["affiliation_text"] = aff_txt
+            except Exception:
+                pass
         elif DEBUG_FETCH:
             print("  [debug] scholar profile marker NOT found; will try text-mode parsing")
         # Text-mode fallback parsing (works with r.jina.ai output). Be conservative.
@@ -305,6 +388,18 @@ def fetch_profile_metrics(profile_url: str) -> Dict[str, Optional[int]]:
                     result["h_index"] = int(m_h2.group(1))
                 except Exception:
                     pass
+        # Affiliation from text-mode if not captured
+        if result.get("affiliation_text") is None and html:
+            try:
+                m_aff2 = re.search(r'Affiliation[^\n<]*[:\-]?\s*([^\n<]{3,120})', html, flags=re.IGNORECASE)
+                if m_aff2:
+                    t = m_aff2.group(1)
+                    t = re.sub(r'<[^>]+>', ' ', t)
+                    t = re.sub(r'\s+', ' ', t).strip()
+                    if t:
+                        result["affiliation_text"] = t
+            except Exception:
+                pass
         if DEBUG_FETCH:
             print(f"  [debug] parsed metrics → citations={result['citations']}, h_index={result['h_index']}")
         return result
@@ -355,6 +450,7 @@ def extract_name_from_title(title: str) -> str:
     return name if name else "Unknown"
 
 # def search_for_email(person_name: str, api_key: str, general_cx_id: str) -> str:
+def search_for_email(person_name: str, api_key: str, general_cx_id: str) -> str:
     """Search for person's email using their name + "email" on general Google search."""
     if not person_name or person_name == "Unknown":
         return "Not found"
@@ -435,11 +531,10 @@ def extract_name_from_title(title: str) -> str:
                             found_email = email_matches[0]
                             print(f"  ✅ Found email: {found_email}")
                             return found_email
-                        
-                        # Add small delay between searches to avoid rate limiting
-                        import time
-                        time.sleep(0.5)
-                    
+                            
+                            # Add small delay between searches to avoid rate limiting
+                            import time
+                            time.sleep(0.5)
             except Exception as e:
                 print(f"  ⚠️ Query {i} failed: {e}")
                 continue
@@ -1227,6 +1322,33 @@ def fetch_official_site_from_wikidata(wikipedia_url: str) -> str:
     except Exception:
         return "N/A"
 
+def _heuristic_summary(person_name: str, affiliation_text: str = "", snippet: str = "") -> str:
+    """Construct a very short 1–2 sentence heuristic summary without API calls.
+    Uses name + affiliation and any academic keywords from snippet. Deterministic, no CSE.
+    """
+    name = (person_name or "Unknown").strip()
+    aff = (affiliation_text or "").strip()
+    sn = (snippet or "").strip()
+    parts = []
+    if aff:
+        parts.append(f"{name} is an academic affiliated with {aff}.")
+    else:
+        parts.append(f"{name} is an academic researcher.")
+    # Pull a coarse field hint from snippet if present
+    sn_low = sn.lower()
+    field = None
+    for kw in [
+        "computer science", "economics", "biology", "chemistry", "physics",
+        "engineering", "neuroscience", "genetics", "medicine", "statistics",
+        "mathematics", "psychology", "sociology", "political science"
+    ]:
+        if kw in sn_low:
+            field = kw
+            break
+    if field:
+        parts.append(f"Their work relates to {field}.")
+    return " ".join(parts)
+
 def fetch_website_from_wikipedia_extlinks(wikipedia_url: str) -> str:
     """Fetch candidate website from Wikipedia page external links (prop=extlinks)."""
     try:
@@ -1277,7 +1399,7 @@ def fetch_website_from_wikipedia_extlinks(wikipedia_url: str) -> str:
         return "N/A"
 
 def first_url_from_general_cse(person_name: str) -> str:
-    """Perform one general CSE query with 'name email' and return the first result URL."""
+    """Perform one general CSE query with 'name email' and return the first valid result URL."""
     if not person_name or not GENERAL_CSE_ID or not API_KEY:
         return "N/A"
     try:
@@ -1286,20 +1408,181 @@ def first_url_from_general_cse(person_name: str) -> str:
         if DEBUG_FETCH:
             print(f"  [debug] general CSE first-url: {q}")
         _count_cse_call(f"general first-url q={q} cx={GENERAL_CSE_ID}")
-        res = service.cse().list(q=q, cx=GENERAL_CSE_ID, num=1).execute()
+        res = service.cse().list(q=q, cx=GENERAL_CSE_ID, num=10).execute()
         items = res.get("items") or []
         if items:
+            # Check all results and return the first valid one
+            for item in items:
+                url = item.get("link") or ""
+                if url and is_valid_homepage_url(url):
+                    return url
+            # If no valid URLs found, return the first one anyway
             return items[0].get("link") or "N/A"
         return "N/A"
     except Exception:
         return "N/A"
+
+def is_valid_homepage_url(url: str) -> bool:
+    """Check if a homepage URL is valid (not PDF, news article, etc.)."""
+    if not url or url == "N/A":
+        return False
+    
+    lu = url.lower()
+    
+    # Check PDFs and documents
+    if any(ext in lu for ext in [".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx"]):
+        return False
+    
+    # Check news articles, press releases, and non-personal pages
+    if any(bad in lu for bad in [
+        "/news/", "/press/", "/media/", "/article", "/story", "/announcement",
+        "newsroom", "press-release", "mit-news", "harvard-news", "stanford-news",
+        "/honor", "/award", "/recognition", "/tribute", "/memorial"
+    ]):
+        return False
+    
+    # Only accept URLs that look like personal/academic pages
+    return any(good in lu for good in [
+        "/faculty/", "/people/", "/professor", "/prof.", "/~", "/user/",
+        "homepage", "personal", "lab", "research", "group", "team",
+        ".edu/~", ".edu/people/", ".edu/faculty/"
+    ])
+
+# ---------------- Summarization helpers (OpenAI GPT-4o-mini) ----------------
+
+def _get_openai_client():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key or OpenAI is None:
+        return None
+    try:
+        client = OpenAI()
+        return client
     except Exception:
-        WIKI_CACHE[person_name] = "N/A"
+        return None
+
+def fetch_wikipedia_extract(wikipedia_url: str) -> str:
+    try:
+        m = re.search(r"/wiki/([^?#]+)", wikipedia_url or "")
+        if not m:
+            return ""
+        title = m.group(1).replace("_", " ")
+        import requests
+        params = {
+            "action": "query",
+            "prop": "extracts",
+            "explaintext": 1,
+            "exsectionformat": "plain",
+            "titles": title,
+            "format": "json",
+            "utf8": 1,
+        }
+        headers = {
+            "User-Agent": f"WikiCheck/1.0 (mailto:{WIKI_MAILTO})",
+            "Accept": "application/json",
+        }
+        r = requests.get("https://en.wikipedia.org/w/api.php", params=params, headers=headers, timeout=20)
+        if r.status_code != 200:
+            return ""
+        data = r.json() or {}
+        pages = (data.get("query") or {}).get("pages") or {}
+        for _, pg in pages.items():
+            ext = pg.get("extract") or ""
+            if isinstance(ext, str):
+                return ext.strip()
+        return ""
+    except Exception:
+        return ""
+
+def fetch_homepage_text(url: str) -> str:
+    if not url or url == "N/A":
+        return ""
+    try:
+        import requests
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            )
+        }
+        r = requests.get(url, headers=headers, timeout=15)
+        if r.status_code != 200 or not r.text:
+            return ""
+        html = r.text
+        if BeautifulSoup is not None:
+            soup = BeautifulSoup(html, "html.parser")
+            # Remove script/style
+            for tag in soup(["script", "style", "noscript"]):
+                tag.decompose()
+            text = soup.get_text(" ")
+        else:
+            # Fallback: strip tags
+            text = re.sub(r"<[^>]+>", " ", html)
+        text = re.sub(r"\s+", " ", text or "").strip()
+        # Limit length to keep token usage low
+        return text[:5000]
+    except Exception:
+        return ""
+
+def summarize_with_gpt(source_text: str, mode: str = "wiki") -> str:
+    client = _get_openai_client()
+    if client is None or not source_text:
+        return "N/A"
+    try:
+        if mode == "wiki":
+            sys_msg = (
+                "You are an academic summarizer. Output plain text only. No markup. "
+                "Summarize the person's biography focusing on field, notable contributions, key works, awards, and current affiliation."
+            )
+            user_msg = (
+                "Summarize the following Wikipedia extract into a concise academic bio (3-6 sentences). "
+                "Plain text only, no brackets, no citations, no list formatting.\n\n" + source_text[:8000]
+            )
+            max_tokens = 250
+        else:
+            sys_msg = (
+                "You are an academic summarizer. Output plain text only. No markup."
+            )
+            user_msg = (
+                "From the following homepage/about text, write a very short 1-2 sentence summary of the person's main field and contributions. "
+                "Plain text only, avoid speculation.\n\n" + source_text[:6000]
+            )
+            max_tokens = 120
+        resp = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": user_msg},
+            ],
+            temperature=0.2,
+            max_tokens=max_tokens,
+        )
+        content = (resp.choices[0].message.content or '').strip()
+        # Normalize whitespace
+        content = re.sub(r"\s+", " ", content)
+        return content if content else "N/A"
+    except Exception:
         return "N/A"
 
-def find_email_for_person(person_name: str, homepage_url: str) -> str:
+def find_email_for_person(person_name: str, homepage_url: str, profile_url: str = None) -> str:
     """Find email for a person using their homepage URL and name."""
-    if not person_name or not homepage_url or homepage_url == "N/A":
+    if not person_name:
+        return "N/A"
+    
+    # If homepage URL is invalid, try to find a better one
+    if not is_valid_homepage_url(homepage_url) and profile_url:
+        print(f"  🔄 Invalid homepage URL detected: {homepage_url}")
+        print(f"  🔍 Attempting to find better homepage for {person_name}...")
+        
+        # Try to fetch a better homepage from the profile
+        new_homepage = fetch_homepage_from_profile(profile_url)
+        if is_valid_homepage_url(new_homepage):
+            print(f"  ✅ Found better homepage: {new_homepage}")
+            homepage_url = new_homepage
+        else:
+            print(f"  ⚠️ Could not find valid homepage, skipping email search...")
+            homepage_url = "N/A"
+    
+    if not homepage_url or homepage_url == "N/A":
         return "N/A"
     
     try:
@@ -1321,19 +1604,21 @@ def find_email_for_person(person_name: str, homepage_url: str) -> str:
         
         # Scrape emails from the homepage
         if scraper.scrape_emails(homepage_url):
-            if scraper.emails:
-                print(f"  📧 Found {len(scraper.emails)} emails, analyzing for {person_name}...")
-                
+            # Filter to valid emails only
+            valid_emails = [e for e in (scraper.emails or []) if is_valid_email(e)]
+            if valid_emails:
+                print(f"  📧 Found {len(valid_emails)} valid emails, analyzing for {person_name}...")
+                scraper.emails = valid_emails
                 # Analyze emails to find the best match
                 result = scraper.analyze_current_emails_for_person(person_name)
-                if result:
+                if result and is_valid_email(result):
                     print(f"  ✅ Found likely email: {result}")
                     return result
                 else:
-                    print(f"  ⚠️ No matching email found for {person_name}")
+                    print(f"  ⚠️ No matching valid email found for {person_name}")
                     return "Not found"
             else:
-                print(f"  ⚠️ No emails found on homepage")
+                print(f"  ⚠️ No valid emails found on homepage")
                 return "Not found"
         else:
             print(f"  ❌ Failed to scrape homepage")
@@ -1358,8 +1643,21 @@ if __name__ == "__main__":
         print("Warning: GOOGLE_GENERAL_CSE_ID environment variable not set.")
         print("Email search will be skipped. Set this to a CSE configured to search the entire web.")
     
-    # Search term specifically designed to encourage "Cited by" and "h-index" in snippets
-    scholar_search_term = os.getenv("SEARCH_TERM", "harvard university professor \"cited by\" \"h-index\"")
+    # Load query from file if present; fallback to env SEARCH_TERM
+    qrec = _load_next_query_from_file(QUERY_LIST_PATH)
+    if qrec and qrec.get("term"):
+        scholar_search_term = qrec["term"]
+        # If file provided affiliation tokens, override AFFILIATION_FILTER for this run
+        if qrec.get("aff"):
+            AFFILIATION_FILTER[:] = qrec["aff"]
+        print(f"Using query from file: '{scholar_search_term}'")
+        if AFFILIATION_FILTER:
+            print(f"Affiliation filter (from file): {', '.join(AFFILIATION_FILTER)}")
+    else:
+        # Search term specifically designed to encourage "Cited by" and "h-index" in snippets
+        scholar_search_term = os.getenv("SEARCH_TERM", "harvard university professor \"cited by\" \"h-index\"")
+        if AFFILIATION_FILTER:
+            print(f"Affiliation filter (from env): {', '.join(AFFILIATION_FILTER)}")
     
     min_citations_threshold = int(os.getenv("MIN_CITATIONS_THRESHOLD", "10000"))
     min_h_index_threshold = int(os.getenv("MIN_H_INDEX_THRESHOLD", "40"))
@@ -1406,11 +1704,37 @@ if __name__ == "__main__":
         page += 1
     
     print(f"\n📊 Total results collected: {len(all_items)} from {page-1} pages")
+    # If we successfully used a queued query, consume it now so next run uses the next line
+    if qrec and qrec.get("rest") is not None:
+        _consume_query_file(QUERY_LIST_PATH, qrec["rest"])
     
     if all_items:
         print(f"\nAnalyzing {len(all_items)} total results from Google Scholar...")
         
         qualifying_profiles = []
+            
+        # Build a set of already-present keys to skip early (reduces wasted work)
+        def _load_existing_keys():
+            keys = set()
+            try:
+                for fp in [
+                    os.path.join(os.path.dirname(__file__), "qualified_scholar_profiles_with_wikipedia.csv"),
+                    os.path.join(os.path.dirname(__file__), "qualified_scholar_profiles_without_wikipedia.csv"),
+                    os.path.join(os.path.dirname(__file__), "without_email.csv"),
+                ]:
+                    if os.path.exists(fp) and os.stat(fp).st_size > 0:
+                        with open(fp, "r", newline="", encoding="utf-8") as f:
+                            reader = csv.DictReader(f)
+                            for row in reader:
+                                n = (row.get("name") or "").lower().strip()
+                                purl = (row.get("profile_url") or "").strip()
+                                if n:
+                                    keys.add((n, purl))
+            except Exception:
+                pass
+            return keys
+
+        existing_keys = _load_existing_keys()
         
         for i, item in enumerate(all_items, start=1):
             title = clean_unicode_text(item.get("title", ""))
@@ -1420,6 +1744,13 @@ if __name__ == "__main__":
             print(f"\n--- Result {i} ---")
             print(f"Title: {clean_unicode_text(title)}")
             print(f"Snippet: {clean_unicode_text(snippet[:200])}...") 
+
+            # Early duplicate skip by (name, profile_url) to avoid extra API/scrape work
+            early_name = extract_name_from_title(title)
+            dup_key = (early_name.lower().strip(), link.strip() if link else "")
+            if dup_key in existing_keys:
+                print(f"  ℹ️ Skipping already present: {early_name}")
+                continue
             
             # Extract metrics from combined item text (snippet + htmlSnippet + title)
             metrics = extract_metrics_from_item(item)
@@ -1427,7 +1758,7 @@ if __name__ == "__main__":
             h_index = metrics["h_index"]
             
             print(f"Extracted: citations={citations}, h-index={h_index}")
-            
+                
             # If snippet shows elision (e.g., 'Cited by ...' or 'h-index, ...') or either missing, try fetching from profile
             needs_fetch = False
             if citations is None or h_index is None:
@@ -1436,6 +1767,7 @@ if __name__ == "__main__":
                 if re.search(r"Cited by\s*\.\.\.", snippet, flags=re.IGNORECASE) or re.search(r"h[\s\-–—]?index\s*,\s*\.\.\.", snippet, flags=re.IGNORECASE):
                     needs_fetch = True
 
+            aff_text = ""
             if needs_fetch and link and link.startswith("http"):
                 print("  Attempting to fetch metrics from profile page...")
                 prof = fetch_profile_metrics(link)
@@ -1445,6 +1777,17 @@ if __name__ == "__main__":
                 if h_index is None and prof.get("h_index") is not None:
                     h_index = prof["h_index"]
                     print(f"  ✅ Filled h-index from profile: {h_index}")
+                aff_text = (prof.get("affiliation_text") or "")
+                # Affiliation filtering
+                if AFFILIATION_FILTER:
+                    aff_text = (prof.get("affiliation_text") or "").lower()
+                    homepage_probe = fetch_homepage_from_profile(link)
+                    homepage_l = (homepage_probe or "").lower()
+                    match_aff = any(t in aff_text for t in AFFILIATION_FILTER)
+                    match_dom = any(t in homepage_l for t in AFFILIATION_FILTER)
+                    if not (match_aff or match_dom):
+                        print("  🚫 Skipping due to AFFILIATION_FILTER mismatch")
+                        continue
             # If still missing and we have a profile URL, try a targeted CSE refetch
             if (citations is None or h_index is None) and link and "user=" in link:
                 tmetrics = try_cse_refetch_metrics_via_profile_id(API_KEY, SCHOLAR_CSE_ID, link)
@@ -1496,34 +1839,94 @@ if __name__ == "__main__":
                     "h_index": h_index if h_index is not None else "N/A",
                     "profile_url": clean_unicode_text(link) if link else link,
                     "homepage_url": homepage_url,
-                    "wikipedia_url": clean_unicode_text(wikipedia_url) if wikipedia_url else wikipedia_url
+                    "wikipedia_url": clean_unicode_text(wikipedia_url) if wikipedia_url else wikipedia_url,
+                    "affiliation_text": aff_text or "",
                 }
                 
                 # Enrich homepage_url based on Wikipedia or general CSE
                 if profile_data["wikipedia_url"] and profile_data["wikipedia_url"] != "N/A":
                     site = fetch_official_site_from_wikidata(profile_data["wikipedia_url"])
-                    if site and site != "N/A":
+                    if site and site != "N/A" and is_valid_homepage_url(site):
                         profile_data["homepage_url"] = site
                         if DEBUG_FETCH:
                             print(f"  [debug] homepage from Wikidata: {site}")
                     elif (not profile_data["homepage_url"]) or profile_data["homepage_url"] == "N/A":
                         # Fallback: external links from Wikipedia page
                         site2 = fetch_website_from_wikipedia_extlinks(profile_data["wikipedia_url"])
-                        if site2 and site2 != "N/A":
+                        if site2 and site2 != "N/A" and is_valid_homepage_url(site2):
                             profile_data["homepage_url"] = site2
                             if DEBUG_FETCH:
                                 print(f"  [debug] homepage from Wikipedia extlinks: {site2}")
-                elif (not profile_data["homepage_url"]) or profile_data["homepage_url"] == "N/A":
-                    # One general CSE call to get first URL
-                    url = first_url_from_general_cse(person_name)
-                    if url and url != "N/A":
+                
+                # If still no valid homepage, try ONE conservative CSE search
+                if (not profile_data["homepage_url"]) or profile_data["homepage_url"] == "N/A" or not is_valid_homepage_url(profile_data["homepage_url"]):
+                    print(f"  🔍 Searching for better homepage for {person_name}...")
+                    
+                    # Try ONE targeted search: name + "homepage site:edu"
+                    query = f'"{person_name}" homepage site:edu'
+                    url = first_url_from_general_cse(query)
+                    if url and url != "N/A" and is_valid_homepage_url(url):
                         profile_data["homepage_url"] = url
                         if DEBUG_FETCH:
-                            print(f"  [debug] homepage from general CSE: {url}")
+                            print(f"  [debug] homepage from CSE query '{query}': {url}")
+                    else:
+                        # If that fails, try ONE general search without site restriction
+                        url = first_url_from_general_cse(person_name)
+                        if url and url != "N/A" and is_valid_homepage_url(url):
+                            profile_data["homepage_url"] = url
+                            if DEBUG_FETCH:
+                                print(f"  [debug] homepage from general CSE: {url}")
+                        else:
+                            profile_data["homepage_url"] = "N/A"
                 
                 # Find email for this person using their homepage URL
-                email = find_email_for_person(person_name, profile_data["homepage_url"])
+                email = find_email_for_person(person_name, profile_data["homepage_url"], profile_data["profile_url"])
+                # If no email and we have a Wikipedia page but no good homepage, try external links site directly
+                if (not email or email.strip().lower() in {"n/a", "not found", "error", ""}) and \
+                   (profile_data.get("wikipedia_url") and str(profile_data.get("wikipedia_url")).strip().upper() != "N/A"):
+                    try:
+                        site_any = fetch_website_from_wikipedia_extlinks(profile_data["wikipedia_url"]) or ""
+                        if site_any:
+                            alt_email = find_email_for_person(person_name, site_any, profile_data["profile_url"])  # may or may not pass strict URL check
+                            if alt_email and alt_email.strip().lower() not in {"n/a", "not found", "error", ""}:
+                                email = alt_email
+                    except Exception:
+                        pass
                 profile_data["email"] = email
+
+                # Generate summary with no-CSE fallback chain
+                summary_text = "N/A"
+                wiki_url_local = profile_data.get("wikipedia_url") or ""
+                homepage_local = profile_data.get("homepage_url") or ""
+
+                # 1) Wikipedia extract
+                if wiki_url_local and wiki_url_local != "N/A":
+                    wiki_extract = fetch_wikipedia_extract(wiki_url_local)
+                    if wiki_extract:
+                        summary_text = summarize_with_gpt(wiki_extract, mode="wiki")
+
+                # 2) Homepage text (if summary still N/A)
+                if (not summary_text or summary_text == "N/A") and is_valid_homepage_url(homepage_local):
+                    htxt = fetch_homepage_text(homepage_local)
+                    if htxt:
+                        summary_text = summarize_with_gpt(htxt, mode="home")
+
+                # 3) Wikipedia external links → homepage text (no CSE)
+                if (not summary_text or summary_text == "N/A") and wiki_url_local and wiki_url_local != "N/A":
+                    site_from_ext = fetch_website_from_wikipedia_extlinks(wiki_url_local)
+                    if site_from_ext and is_valid_homepage_url(site_from_ext):
+                        htxt2 = fetch_homepage_text(site_from_ext)
+                        if htxt2:
+                            summary_text = summarize_with_gpt(htxt2, mode="home")
+
+                # 4) Heuristic 1–2 sentence if everything else failed
+                if not summary_text or summary_text == "N/A":
+                    summary_text = _heuristic_summary(
+                        person_name,
+                        (profile_data.get("affiliation_text") or ""),
+                        snippet,
+                    )
+                profile_data["summary"] = summary_text
                 
                 qualifying_profiles.append(profile_data)
                 print(f"✅ Added to qualified list.")
@@ -1535,117 +1938,158 @@ if __name__ == "__main__":
                 elif require_h_index and (h_index is None or h_index < min_h_index_threshold):
                     print(f"❌ Does not qualify (h-index: {h_index} < {min_h_index_threshold})")
             
-            # Write qualifying profiles to CSV, handling uniqueness
-            if qualifying_profiles:
-                output_file_wiki = "qualified_scholar_profiles_with_wikipedia.csv"
-                output_file_no_wiki = "qualified_scholar_profiles_without_wikipedia.csv"
-            fieldnames = ["name", "citations", "h_index", "profile_url", "homepage_url", "wikipedia_url", "email"]
+        # After processing all items, write qualifying profiles to CSV, handling uniqueness
+        output_file_wiki = "qualified_scholar_profiles_with_wikipedia.csv"
+        output_file_no_wiki = "qualified_scholar_profiles_without_wikipedia.csv"
+        NEW_FIELDNAMES = ["Name", "email", "wikipedia_url", "info", "is_wiki"]
+
+        # Split by email availability first (treat N/A, Not found, Error, empty as no email)
+        def _is_missing_email(val: str) -> bool:
+            if not isinstance(val, str):
+                return True
+            v = val.strip().lower()
+            return (v == "n/a") or (v == "not found") or (v == "error") or (v == "")
+
+        profiles_without_email = [p for p in qualifying_profiles if _is_missing_email(p.get("email", ""))]
+        profiles_with_email = [p for p in qualifying_profiles if not _is_missing_email(p.get("email", ""))]
+
+        # From those that have emails, separate by Wikipedia presence
+        profiles_with_wiki = [
+            p for p in profiles_with_email
+            if p.get("wikipedia_url") and str(p.get("wikipedia_url")).strip().upper() != "N/A"
+        ]
+        profiles_without_wiki = [
+            p for p in profiles_with_email
+            if (not p.get("wikipedia_url")) or str(p.get("wikipedia_url")).strip().upper() == "N/A"
+        ]
+
+        # Reduce to new schema rows
+        def to_new_schema_row(p: dict, is_wiki_flag: int) -> dict:
+            return {
+                "Name": p.get("name") or p.get("Name") or "Unknown",
+                "email": p.get("email") or "N/A",
+                "wikipedia_url": p.get("wikipedia_url") or "N/A",
+                "info": p.get("summary") or p.get("info") or "N/A",
+                "is_wiki": str(is_wiki_flag),
+            }
+
+        rows_with_wiki_new = [to_new_schema_row(p, 1) for p in profiles_with_wiki]
+        rows_without_wiki_new = [to_new_schema_row(p, 0) for p in profiles_without_wiki]
+
+        # Function to write to CSV, including header check
+        def write_profiles_to_csv(file_path, profiles_list, fieldnames):
+            existing_profiles = []
+            if os.path.exists(file_path):
+                try:
+                    with open(file_path, "r", newline="", encoding="utf-8") as f:
+                        reader = csv.DictReader(f)
+                        for row in reader:
+                            existing_profiles.append(row)
+                except Exception as e:
+                    print(f"Warning: Could not read existing CSV {file_path}: {e}")
             
-            # Separate profiles based on Wikipedia presence (exclude "N/A")
-            profiles_with_wiki = [
-                p for p in qualifying_profiles
-                if p.get("wikipedia_url") and str(p.get("wikipedia_url")).strip().upper() != "N/A"
-            ]
-            profiles_without_wiki = [
-                p for p in qualifying_profiles
-                if not p.get("wikipedia_url") or str(p.get("wikipedia_url")).strip().upper() == "N/A"
-            ]
+            new_profiles = []
+            # De-duplicate by (Name, wikipedia_url) - prioritize Wikipedia URL for uniqueness
+            existing_keys_local = set()
+            for p in existing_profiles:
+                nm = (p.get("Name") or p.get("name") or "").lower().strip()
+                wurl = (p.get("wikipedia_url") or "").strip().lower()
+                # Use Wikipedia URL if available, otherwise fall back to email
+                unique_id = wurl if wurl and wurl != "n/a" else (p.get("email") or "").strip().lower()
+                key = (nm, unique_id)
+                existing_keys_local.add(key)
 
-            # Function to write to CSV, including header check
-            def write_profiles_to_csv(file_path, profiles_list, fieldnames):
-                existing_profiles = []
-                if os.path.exists(file_path):
-                    try:
-                        with open(file_path, "r", newline="", encoding="utf-8") as f:
-                            reader = csv.DictReader(f)
-                            for row in reader:
-                                existing_profiles.append(row)
-                    except Exception as e:
-                        print(f"Warning: Could not read existing CSV {file_path}: {e}")
-                
-                new_profiles = []
-                existing_names = {p["name"].lower().strip() for p in existing_profiles if p.get("name")}
-
-                for profile in profiles_list:
-                    profile_name_lower = profile["name"].lower().strip()
-                    if profile_name_lower not in existing_names:
-                        # Final Unicode cleaning before CSV storage
-                        cleaned_profile = {}
-                        for key, value in profile.items():
-                            if isinstance(value, str):
-                                cleaned_profile[key] = clean_unicode_text(value)
-                            else:
-                                cleaned_profile[key] = value
-                        new_profiles.append(cleaned_profile)
-                        existing_names.add(profile_name_lower)
-                    else:
-                        print(f"⚠️ Skipping duplicate in {file_path}: {profile['name']}")
-                
-                # Always ensure the file exists with headers, even if no new profiles
-                write_header = not os.path.exists(file_path) or os.stat(file_path).st_size == 0
-                
-                if new_profiles:
-                    with open(file_path, "a", newline="", encoding="utf-8") as f:
-                        writer = csv.DictWriter(f, fieldnames=fieldnames)
-                        if write_header:
-                            writer.writeheader()
-                        writer.writerows(new_profiles)
-                    print(f"\n✅ Successfully wrote {len(new_profiles)} new qualified profiles to {file_path}")
+            for profile in profiles_list:
+                profile_name_lower = (profile.get("Name") or profile.get("name") or "").lower().strip()
+                wurl = (profile.get("wikipedia_url") or "").strip().lower()
+                eml = (profile.get("email") or "").strip().lower()
+                # Use Wikipedia URL if available, otherwise fall back to email
+                unique_id = wurl if wurl and wurl != "n/a" else eml
+                key_local = (profile_name_lower, unique_id)
+                if key_local not in existing_keys_local:
+                    # Final Unicode cleaning before CSV storage
+                    cleaned_profile = {}
+                    for key, value in profile.items():
+                        if isinstance(value, str):
+                            cleaned_profile[key] = clean_unicode_text(value)
+                        else:
+                            cleaned_profile[key] = value
+                    new_profiles.append(cleaned_profile)
+                    existing_keys_local.add(key_local)
                 else:
+                    print(f"⚠️ Skipping duplicate in {file_path}: {profile.get('Name') or profile.get('name')}")
+            
+            # Always ensure the file exists with headers, even if no new profiles
+            write_header = not os.path.exists(file_path) or os.stat(file_path).st_size == 0
+            
+            if new_profiles:
+                with open(file_path, "a", newline="", encoding="utf-8") as f:
+                    writer = csv.DictWriter(f, fieldnames=fieldnames)
                     if write_header:
-                        with open(file_path, "w", newline="", encoding="utf-8") as f:
-                            writer = csv.DictWriter(f, fieldnames=fieldnames)
-                            writer.writeheader()
-                        print(f"\n📄 Created {file_path} with headers (no new profiles to add)")
-                    else:
-                        print(f"\nℹ️ No new qualified profiles to add to {file_path} (all were duplicates).")
+                        writer.writeheader()
+                    writer.writerows(new_profiles)
+                print(f"\n✅ Successfully wrote {len(new_profiles)} new qualified profiles to {file_path}")
+            else:
+                if write_header:
+                    with open(file_path, "w", newline="", encoding="utf-8") as f:
+                        writer = csv.DictWriter(f, fieldnames=fieldnames)
+                        writer.writeheader()
+                    print(f"\n📄 Created {file_path} with headers (no new profiles to add)")
+                else:
+                    print(f"\nℹ️ No new qualified profiles to add to {file_path} (all were duplicates).")
 
-            # Always write both files, even if empty
-            print(f"\n📁 Creating CSV files...")
-            
-            # Write profiles WITH Wikipedia pages
-            write_profiles_to_csv(output_file_wiki, profiles_with_wiki, fieldnames)
+        # Always write all files, even if empty
+        print(f"\n📁 Creating CSV files...")
+        
+        # Write profiles WITH Wikipedia pages (new schema)
+        write_profiles_to_csv(output_file_wiki, rows_with_wiki_new, NEW_FIELDNAMES)
 
-            # Write profiles WITHOUT Wikipedia pages  
-            write_profiles_to_csv(output_file_no_wiki, profiles_without_wiki, fieldnames)
-            
-            # Show file creation summary
-            print(f"\n📊 CSV Files Created:")
-            print(f"   • {output_file_wiki}: {len(profiles_with_wiki)} profiles with Wikipedia pages")
-            print(f"   • {output_file_no_wiki}: {len(profiles_without_wiki)} profiles without Wikipedia pages")
-            
-            # Debug: Show what's happening with Wikipedia URLs
-            print(f"\n🔍 Debug - Wikipedia URL status:")
-            for i, prof in enumerate(qualifying_profiles, 1):
-                has_wiki = bool(prof.get("wikipedia_url")) and str(prof.get("wikipedia_url")).strip().upper() != "N/A"
-                wiki_status = "✅ Found" if has_wiki else "❌ Not found"
-                print(f"   {i}. {prof['name']}: {wiki_status}")
-                if has_wiki:
-                    print(f"      URL: {prof['wikipedia_url']}")
-                
-                # Show summary of all qualified profiles found in this run
-                print("\n=== SUMMARY OF QUALIFIED PROFILES ===")
-                for i, prof in enumerate(qualifying_profiles, 1):
-                    print(f"{i}. {prof['name']}")
-                    print(f"   Citations: {prof['citations']:,}")
-                    print(f"   H-index: {prof['h_index']}")
-                    print(f"   Profile: {prof['profile_url']}")
-                print(f"   Homepage: {prof['homepage_url']}")
-                print(f"   Wikipedia: {prof['wikipedia_url'] if prof['wikipedia_url'] else 'N/A'}")
-                print(f"   Email: {prof['email'] if prof['email'] else 'N/A'}")
-                print()
-            # Final total CSE calls
-            print(f"\nTotal Google CSE calls: {CSE_CALL_COUNT}")
-        else:
-            print(f"\n❌ No profiles found meeting the criteria in this search.")
-            print("Consider:")
-            print("1. Adjusting the search term")
-            print("2. Lowering the thresholds")
-            print("3. Checking if your Scholar CSE is properly configured")
-            # Final total CSE calls
-            print(f"\nTotal Google CSE calls: {CSE_CALL_COUNT}")
-    else:
-        print("Failed to retrieve search results from Google Scholar.")
-        print("Check your API key and Scholar CSE ID configuration.")
+        # Write profiles WITHOUT Wikipedia pages (new schema)
+        write_profiles_to_csv(output_file_no_wiki, rows_without_wiki_new, NEW_FIELDNAMES)
+        
+        # Write profiles WITHOUT EMAIL to a separate CSV and DO NOT include them in the above two
+        output_file_no_email = "without_email.csv"
+        # For without_email.csv, keep the new schema with empty email
+        rows_no_email_new = [
+            {
+                "Name": p.get("name") or p.get("Name") or "Unknown",
+                "email": "Not found",
+                "wikipedia_url": p.get("wikipedia_url") or "N/A",
+                "info": p.get("summary") or p.get("info") or "N/A",
+                "is_wiki": "1" if (p.get("wikipedia_url") and str(p.get("wikipedia_url")).strip().upper() != "N/A") else "0",
+            }
+            for p in profiles_without_email
+        ]
+        write_profiles_to_csv(output_file_no_email, rows_no_email_new, NEW_FIELDNAMES)
+        
+        # Show file creation summary
+        print(f"\n📊 CSV Files Created:")
+        print(f"   • {output_file_wiki}: {len(rows_with_wiki_new)} profiles with Wikipedia pages (emails present)")
+        print(f"   • {output_file_no_wiki}: {len(rows_without_wiki_new)} profiles without Wikipedia pages (emails present)")
+        print(f"   • {output_file_no_email}: {len(rows_no_email_new)} profiles without email")
+        
+        # Debug: Show what's happening with Wikipedia URLs
+        print(f"\n🔍 Debug - Wikipedia URL status:")
+        for i, prof in enumerate(qualifying_profiles, 1):
+            has_wiki = bool(prof.get("wikipedia_url")) and str(prof.get("wikipedia_url")).strip().upper() != "N/A"
+            wiki_status = "✅ Found" if has_wiki else "❌ Not found"
+            print(f"   {i}. {prof['name']}: {wiki_status}")
+            if has_wiki:
+                print(f"      URL: {prof['wikipedia_url']}")
+            # New schema preview: show info + wiki flag
+            is_wiki_flag = "1" if has_wiki else "0"
+            print(f"   Wikipedia: {prof['wikipedia_url'] if prof['wikipedia_url'] else 'N/A'}")
+            print(f"   Email: {prof['email'] if prof['email'] else 'N/A'} | is_wiki={is_wiki_flag}")
+            print()
+                        
         # Final total CSE calls
         print(f"\nTotal Google CSE calls: {CSE_CALL_COUNT}")
+    else:
+        print(f"\n❌ No profiles found meeting the criteria in this search.")
+        print("Consider:")
+        print("1. Adjusting the search term")
+        print("2. Lowering the thresholds")
+        print("3. Checking if your Scholar CSE is properly configured")
+        # Final total CSE calls
+        print(f"\nTotal Google CSE calls: {CSE_CALL_COUNT}")
+    

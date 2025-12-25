@@ -11,9 +11,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "browser-use-sdk": "^2.0.4",
+    "dotenv": "^17.2.2",
     "googleapis": "^156.0.0",
     "playwright": "^1.54.2"
   }
 }
-
-
