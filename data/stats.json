@@ -1,0 +1,19 @@
+{
+  "total_scholars": 6445,
+  "with_email": 6354,
+  "with_wiki": 6202,
+  "wiki_opportunities": 243,
+  "with_missing_sections": 6048,
+  "top_institutions": {
+    "Other / Independent": 1733,
+    "Massachusetts Institute of Technology": 373,
+    "Harvard University": 349,
+    "UCLA": 268,
+    "Princeton University": 259,
+    "Yale University": 225,
+    "University of Pennsylvania": 216,
+    "Columbia University": 187,
+    "Stanford University": 173,
+    "University of Chicago": 172
+  }
+}

@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: social-sphere
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: pip install -r requirements.txt && python build_database.py
+    startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_API_KEY
+        sync: false
+      - key: GOOGLE_SCHOLAR_CSE_ID
+        sync: false
+      - key: GOOGLE_GENERAL_CSE_ID
+        sync: false

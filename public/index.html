@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Sphere — Academic Lead & Wikipedia Intelligence Platform</title>
+  <meta name="description" content="Discover high-impact academic scholars, extract verified contact emails, audit Wikipedia completeness, and generate personalized outreach pitches.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+  <!-- Glow Highlights -->
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line>
+            <line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line>
+            <line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line>
+            <line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">Social Sphere</h1>
+          <span class="brand-badge">Academic Intelligence Engine</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" id="mainNav">
+        <button class="nav-tab active" data-tab="explorer" id="tabExplorer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Scholar Directory
+        </button>
+        <button class="nav-tab" data-tab="scanner" id="tabScanner">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+          Live Scanner
+        </button>
+        <button class="nav-tab" data-tab="auditor" id="tabAuditor">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><path d="M11 8v6"></path><path d="M8 11h6"></path></svg>
+          Wiki Auditor
+        </button>
+      </nav>
+
+      <!-- Header Actions -->
+      <div class="header-actions">
+        <div class="system-status-pill" id="statusPill">
+          <span class="status-dot"></span>
+          <span id="statusText">Connecting...</span>
+        </div>
+        <button class="btn btn-secondary" id="btnExportTop" title="Export Current Filtered List as CSV">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Export CSV
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-layout">
+    <!-- Top KPI Metric Cards -->
+    <section class="kpi-grid" id="kpiGrid">
+      <div class="kpi-card glass-panel" id="kpiTotal">
+        <div class="kpi-icon-wrap icon-purple">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total Indexed Scholars</span>
+          <div class="kpi-value" id="statTotalScholars">—</div>
+          <span class="kpi-trend trend-neutral">From MIT, Harvard, Stanford & more</span>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="kpiEmail">
+        <div class="kpi-icon-wrap icon-emerald">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Verified Emails Found</span>
+          <div class="kpi-value" id="statVerifiedEmails">—</div>
+          <span class="kpi-trend trend-positive" id="statEmailRate">98.5% discovery rate</span>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="kpiOpportunities">
+        <div class="kpi-icon-wrap icon-amber">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Wikipedia Page Gaps</span>
+          <div class="kpi-value" id="statWikiOpportunities">—</div>
+          <span class="kpi-trend trend-highlight">High impact with no Wiki page</span>
+        </div>
+      </div>
+
+      <div class="kpi-card glass-panel" id="kpiMissingSections">
+        <div class="kpi-icon-wrap icon-cyan">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Audited Incomplete Pages</span>
+          <div class="kpi-value" id="statMissingSections">—</div>
+          <span class="kpi-trend trend-neutral">Missing Awards, Infobox, etc.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 1: Scholar Directory & Explorer -->
+    <div class="tab-pane active" id="paneExplorer">
+      <!-- Filter Toolbar -->
+      <section class="toolbar-panel glass-panel">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="searchInput" placeholder="Search by name, university, or keyword (Press '/' to focus)..." autocomplete="off">
+          <button class="clear-search-btn" id="clearSearchBtn" style="display: none;">&times;</button>
+        </div>
+
+        <div class="filter-controls">
+          <!-- Institution Select -->
+          <div class="filter-group">
+            <label for="filterInstitution">Institution</label>
+            <select id="filterInstitution" class="custom-select">
+              <option value="all">All Universities</option>
+            </select>
+          </div>
+
+          <!-- Wikipedia Status -->
+          <div class="filter-group">
+            <label for="filterWiki">Wikipedia Status</label>
+            <select id="filterWiki" class="custom-select">
+              <option value="all">All Profiles</option>
+              <option value="missing_wiki">🔥 Missing Wiki Page (Opportunity)</option>
+              <option value="has_wiki">Has Wikipedia Page</option>
+            </select>
+          </div>
+
+          <!-- Email Status -->
+          <div class="filter-group">
+            <label for="filterEmail">Email Status</label>
+            <select id="filterEmail" class="custom-select">
+              <option value="all">All Contacts</option>
+              <option value="has_email">Verified Email Only</option>
+              <option value="missing_email">Pending Email</option>
+            </select>
+          </div>
+
+          <!-- Missing Section -->
+          <div class="filter-group">
+            <label for="filterMissing">Missing Section</label>
+            <select id="filterMissing" class="custom-select">
+              <option value="all">Any Incompleteness</option>
+              <option value="Awards & Honors">Missing Awards & Honors</option>
+              <option value="Selected Publications">Missing Publications</option>
+              <option value="Career">Missing Career Section</option>
+              <option value="Early Life">Missing Early Life</option>
+              <option value="InfoBox">Missing Infobox</option>
+            </select>
+          </div>
+
+          <!-- Sort Select -->
+          <div class="filter-group">
+            <label for="sortBy">Sort By</label>
+            <select id="sortBy" class="custom-select">
+              <option value="citations">Citations (High to Low)</option>
+              <option value="name">Name (A-Z)</option>
+              <option value="institution">University</option>
+            </select>
+          </div>
+
+          <!-- View Mode Toggles -->
+          <div class="view-toggle-group">
+            <button class="view-btn active" id="btnViewTable" title="Table View">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+            </button>
+            <button class="view-btn" id="btnViewGrid" title="Card Grid View">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Active Filters Display & Count -->
+      <div class="results-meta-bar">
+        <div class="results-count" id="resultsCount">Loading records...</div>
+        <div class="active-chips" id="activeChips"></div>
+      </div>
+
+      <!-- Data Display Container -->
+      <section class="data-viewport">
+        <!-- Table View -->
+        <div class="table-card glass-panel" id="tableView">
+          <div class="table-responsive">
+            <table class="custom-table" id="scholarsTable">
+              <thead>
+                <tr>
+                  <th class="col-name">Scholar Name</th>
+                  <th class="col-inst">Institution</th>
+                  <th class="col-email">Contact Email</th>
+                  <th class="col-wiki">Wikipedia Status</th>
+                  <th class="col-missing">Missing Sections / Gaps</th>
+                  <th class="col-actions">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="scholarsTableBody">
+                <!-- Rows injected via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Grid Cards View -->
+        <div class="grid-card-view" id="gridView" style="display: none;">
+          <!-- Cards injected via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state glass-panel" id="emptyState" style="display: none;">
+          <div class="empty-icon">🔍</div>
+          <h3>No matching scholar profiles found</h3>
+          <p>Try adjusting your search keywords, clear active filters, or run a live scan to discover new faculty.</p>
+          <button class="btn btn-primary" id="btnResetFilters">Reset All Filters</button>
+        </div>
+
+        <!-- Pagination Bar -->
+        <div class="pagination-bar glass-panel" id="paginationBar">
+          <div class="pagination-info" id="paginationInfo">Showing 1 - 25 of 6,445</div>
+          <div class="pagination-actions">
+            <button class="btn btn-secondary btn-sm" id="btnPrevPage" disabled>Previous</button>
+            <div class="page-numbers" id="pageNumbers"></div>
+            <button class="btn btn-secondary btn-sm" id="btnNextPage">Next</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- TAB 2: Live Background Scanner -->
+    <div class="tab-pane" id="paneScanner">
+      <div class="scanner-grid">
+        <!-- Scanner Control Form -->
+        <div class="scanner-control-card glass-panel">
+          <div class="card-header">
+            <div class="badge-icon icon-purple">⚡</div>
+            <div>
+              <h2>Run Live Scholar Scan</h2>
+              <p class="subtitle">Discovers new professors, calculates citation thresholds, finds emails, and verifies Wikipedia status asynchronously in the background.</p>
+            </div>
+          </div>
+
+          <form id="scannerForm" class="scanner-form">
+            <div class="form-group">
+              <label for="scanQuery">Target Keyword or University</label>
+              <input type="text" id="scanQuery" class="form-input" placeholder="e.g., Stanford Artificial Intelligence, MIT Neuroscience, Oxford Quantum" required>
+              <span class="input-hint">Enter department, subject area, or university name</span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="scanMinCitations">Min Citations Threshold</label>
+                <input type="number" id="scanMinCitations" class="form-input" value="10000" min="0" step="500">
+                <span class="input-hint">Default: 10,000</span>
+              </div>
+              <div class="form-group">
+                <label for="scanMinHIndex">Min h-index</label>
+                <input type="number" id="scanMinHIndex" class="form-input" value="40" min="0" step="5">
+                <span class="input-hint">Default: 40</span>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-glow" id="btnStartScan">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Start Background Scan
+              </button>
+            </div>
+          </form>
+
+          <!-- Current Scan Progress -->
+          <div class="scan-progress-box" id="scanProgressBox" style="display: none;">
+            <div class="progress-header">
+              <span class="progress-status" id="scanStatusBadge">Running...</span>
+              <span class="progress-percent" id="scanProgressPercent">0%</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="scanProgressBar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Terminal Stream Box -->
+        <div class="terminal-card glass-panel">
+          <div class="terminal-header">
+            <div class="terminal-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div class="terminal-title">Live Scraper Console Output</div>
+            <button class="terminal-clear-btn" id="btnClearTerminal">Clear</button>
+          </div>
+          <div class="terminal-body" id="terminalLogs">
+            <div class="terminal-line system">[SYSTEM] Ready to launch scanner tasks. Zero-cost background execution enabled.</div>
+            <div class="terminal-line system">[INFO] Output logs will stream here in real time as Google Scholar & OpenAlex APIs are queried.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scanned Results Preview -->
+      <div class="scanned-results-card glass-panel" id="scannedResultsContainer" style="display: none; margin-top: 1.5rem;">
+        <div class="card-header">
+          <h3>Newly Qualified Scholars Added in this Scan</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table" id="newLeadsTable">
+            <thead>
+              <tr>
+                <th>Scholar Name</th>
+                <th>Citations</th>
+                <th>h-index</th>
+                <th>Discovered Email</th>
+                <th>Wikipedia URL</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="newLeadsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Instant Wikipedia Auditor -->
+    <div class="tab-pane" id="paneAuditor">
+      <div class="auditor-container">
+        <div class="auditor-search-card glass-panel">
+          <div class="card-header">
+            <div class="badge-icon icon-cyan">🔍</div>
+            <div>
+              <h2>Live Wikipedia Completeness Auditor</h2>
+              <p class="subtitle">Query MediaWiki live to check any researcher's article completeness, missing required sections, infobox status, and warning templates.</p>
+            </div>
+          </div>
+
+          <form id="auditorForm" class="auditor-form">
+            <div class="search-input-group">
+              <input type="text" id="auditorInput" class="form-input" placeholder="Enter scholar name or Wikipedia URL (e.g. George Church, Robert Langer, Avi Loeb)..." required>
+              <button type="submit" class="btn btn-primary" id="btnRunAudit">
+                Audit Page Live
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Audit Result Output -->
+        <div class="audit-result-card glass-panel" id="auditResultCard" style="display: none; margin-top: 1.5rem;">
+          <div class="audit-header">
+            <div>
+              <h3 id="auditTitle" class="audit-profile-name">Scholar Name</h3>
+              <a href="#" target="_blank" rel="noopener" id="auditLink" class="wiki-ext-link">Open on Wikipedia &rarr;</a>
+            </div>
+            <div class="audit-score-pill">
+              <span class="score-label">Completeness Score</span>
+              <span class="score-number" id="auditScore">—</span>
+            </div>
+          </div>
+
+          <div class="audit-grid">
+            <!-- Sections Checklist -->
+            <div class="audit-box">
+              <h4>Required Academic Sections</h4>
+              <div class="checklist-container" id="auditSectionsList"></div>
+            </div>
+
+            <!-- Warnings and Assessment -->
+            <div class="audit-box">
+              <h4>Warnings & Recommendations</h4>
+              <div id="auditWarningsBox" class="warnings-box"></div>
+              <div class="audit-actions" style="margin-top: 1.5rem;">
+                <button class="btn btn-primary" id="btnAuditPitch">
+                  Generate Pitch for this Profile
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- MODAL 1: Scholar Details -->
+  <div class="modal-backdrop" id="scholarModal" style="display: none;">
+    <div class="modal-dialog glass-panel">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 id="modalScholarName">Scholar Name</h2>
+          <span class="modal-institution" id="modalScholarInst">University</span>
+        </div>
+        <button class="modal-close-btn" id="btnCloseScholarModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Quick stats row -->
+        <div class="modal-metrics-row">
+          <div class="metric-badge">
+            <span class="m-label">Citations</span>
+            <span class="m-val" id="modalCitations">—</span>
+          </div>
+          <div class="metric-badge">
+            <span class="m-label">h-index</span>
+            <span class="m-val" id="modalHIndex">—</span>
+          </div>
+          <div class="metric-badge">
+            <span class="m-label">Wikipedia</span>
+            <span class="m-val" id="modalWikiStatus">—</span>
+          </div>
+        </div>
+
+        <!-- Contact Email Row -->
+        <div class="modal-section">
+          <h4>Verified Contact</h4>
+          <div class="email-copy-bar">
+            <span id="modalEmail" class="email-text">email@university.edu</span>
+            <button class="btn btn-secondary btn-sm" id="btnCopyModalEmail">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy Email
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="modal-section">
+          <h4>Biographical Summary</h4>
+          <p id="modalSummary" class="modal-text">No summary available.</p>
+        </div>
+
+        <!-- Missing Wikipedia Sections -->
+        <div class="modal-section">
+          <h4>Missing Wikipedia Sections</h4>
+          <div class="missing-tags-wrap" id="modalMissingSections"></div>
+        </div>
+
+        <!-- Quality Assessment Notes -->
+        <div class="modal-section" id="modalAssessmentSection" style="display: none;">
+          <h4>Auditor Assessment</h4>
+          <div class="assessment-callout" id="modalAssessment"></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <a href="#" target="_blank" rel="noopener" class="btn btn-secondary" id="modalWikiLink">View Wikipedia</a>
+        <button class="btn btn-primary" id="btnModalGeneratePitch">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+          Generate Outreach Pitch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: Outreach Pitch Generator -->
+  <div class="modal-backdrop" id="pitchModal" style="display: none;">
+    <div class="modal-dialog glass-panel">
+      <div class="modal-header">
+        <div>
+          <h2>Outreach Pitch Generator</h2>
+          <span class="subtitle">Customized cold outreach proposing Wikipedia creation or section expansion.</span>
+        </div>
+        <button class="modal-close-btn" id="btnClosePitchModal">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Recipient Contact</label>
+          <input type="text" id="pitchRecipient" class="form-input" readonly>
+        </div>
+        <div class="form-group">
+          <label>Email Subject Line</label>
+          <input type="text" id="pitchSubject" class="form-input">
+        </div>
+        <div class="form-group">
+          <label>Email Proposal Body</label>
+          <textarea id="pitchBody" class="form-textarea" rows="12"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCopyPitchBody">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Copy Pitch Text
+        </button>
+        <a href="#" id="btnMailtoPitch" class="btn btn-primary">
+          Open in Email Client
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
